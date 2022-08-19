@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CG</title>
+</head>
+<body>
+    <ul>
+        <textarea rows="130" cols="100">
+
+# This script is used to deploy the pre-migration non-impacting configuration.
+# ### Observe that BGP is configured with DENY-ALL in/out route-maps.
+# For the migration window, a new impacting CR will be raised to:
+# ### admin shut the BGP peering to old WAN
+# ### configure the proper route-maps under BGP to new WAN
+
+
+# User input:
+
+# ### SNOW request ID: {{snow_req_id}}
+# ### Project dedicated VRF name: {{project_vrf}}
+# ### New WAN VLAN ID: {{new_wan_vlan_id}}
+# ### New WAN inter-connect subnet: {{ip_new_wan}} / 255.255.255.248
+# ### Bucharest_RT_1: {{wan_ip_rt1}}
+# ### Core_RT1: {{bgp_ip_rt1}}
+# ### Bucharest_RT_2: {{wan_ip_rt2}}
+# ### Core_RT2: {{bgp_ip_rt2}}
+
+# The configuration script for the Switches:
+
+##########################
+### Bucharest_WAN_SW_1 ###
+### Bucharest_WAN_SW_2 ###
+##########################
+#
+# ! show commands to gather pre & post-implementation artifacts
+#
+show vlans {{project_vrf}}-to_new_WAN
+show vlans {{new_wan_vlan_id}}
+show configuration interfaces ge-0/0/0 | display set
+show configuration interfaces ge-0/0/1 | display set
+#
+# ! create new VLAN
+#
+set vlans {{project_vrf}}-to_new_WAN vlan-id {{new_wan_vlan_id}}
+set vlans {{project_vrf}}-to_new_WAN description "{{project_vrf}} VRF to new WAN - {{snow_req_id}}"
+#
+# ! add new VLAN to LAN, WAN & x-connect interfaces
+#
+set interfaces ge-0/0/0 unit 0 family ethernet-switching vlan members {{project_vrf}}-to_new_WAN
+set interfaces ge-0/0/1 unit 0 family ethernet-switching vlan members {{project_vrf}}-to_new_WAN
+set interfaces ge-0/0/23 unit 0 family ethernet-switching vlan members {{project_vrf}}-to_new_WAN
+#
+
+
+# The configuration script for Router1:
+
+######################
+### Bucharest_RT_1 ###
+######################
+!
+! # show commands to gather pre & post-implementation artifacts
+!
+sh run int Gi0/0/0.{{new_wan_vlan_id}} !!! WAN int
+!
+sh run | s address-family ipv4 vrf {{project_vrf}}
+sh run | i neighbor {{bgp_ip_rt1}}
+sh ip bgp vpnv4 vrf {{project_vrf}} summ
+!
+conf t
+!
+int Gi0/0/0.{{new_wan_vlan_id}}
+description {{project_vrf}} VRF to new WAN - {{snow_req_id}}
+encapsulation dot1Q {{new_wan_vlan_id}}
+ip vrf forwarding {{project_vrf}}
+ip address {{wan_ip_rt1}} 255.255.255.248
+no ip redirects
+no ip unreachables
+no ip proxy-arp
+exit
+!
+!
+router bgp 65500
+!
+address-family ipv4 vrf {{project_vrf}}
+ !
+ neighbor {{bgp_ip_rt1}} remote-as 65555
+ neighbor {{bgp_ip_rt1}} route-map DENY-ALL in
+ neighbor {{bgp_ip_rt1}} route-map DENY-ALL out
+ neighbor {{bgp_ip_rt1}} description {{project_vrf}} VRF to new WAN - {{snow_req_id}}
+ neighbor {{bgp_ip_rt1}} activate
+ neighbor {{bgp_ip_rt1}} send-community both
+ neighbor {{bgp_ip_rt1}} soft-reconfiguration inbound
+!
+
+# The configuration script for Router2:
+
+######################
+### Bucharest_RT_2 ###
+######################
+!
+! # show commands to gather pre & post-implementation artifacts
+!
+sh run int Gi0/0/0.{{new_wan_vlan_id}} !!! WAN int
+!
+sh run | s address-family ipv4 vrf {{project_vrf}}
+sh run | i neighbor {{bgp_ip_rt2}}
+sh ip bgp vpnv4 vrf {{project_vrf}} summ
+!
+conf t
+!
+int Gi0/0/0.{{new_wan_vlan_id}}
+description {{project_vrf}} VRF to new WAN - {{snow_req_id}}
+encapsulation dot1Q {{new_wan_vlan_id}}
+ip vrf forwarding {{project_vrf}}
+ip address {{wan_ip_rt2}} 255.255.255.248
+no ip redirects
+no ip unreachables
+no ip proxy-arp
+exit
+!
+!
+router bgp 65500
+!
+address-family ipv4 vrf {{project_vrf}}
+ !
+ neighbor {{bgp_ip_rt2}} remote-as 65555
+ neighbor {{bgp_ip_rt2}} route-map DENY-ALL in
+ neighbor {{bgp_ip_rt2}} route-map DENY-ALL out
+ neighbor {{bgp_ip_rt2}} description {{project_vrf}} VRF to new WAN - {{snow_req_id}}
+ neighbor {{bgp_ip_rt2}} activate
+ neighbor {{bgp_ip_rt2}} send-community both
+ neighbor {{bgp_ip_rt2}} soft-reconfiguration inbound
+!
+! ### end
+!
+
+        </textarea>
+    </ul>
+
+</body>
+</html>

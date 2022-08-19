@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CG</title>
+</head>
+<body>
+    <ul>
+
+This script is used to deploy the pre-migration non-impacting configuration.<br>
+- BGP will be configured with DENY-ALL in/out route-maps.<br>
+For the migration window, a new impacting CR will be raised to:<br>
+- admin shut the BGP peering to old WAN<br>
+- configure the proper route-maps under BGP to new WAN<br>
+<br>
+Fill in the following fields to generate the configuration:
+
+		<form method ="post">
+			<br><br>
+			{% csrf_token %}
+			CR SNOW ID: <input type="text" name="snow_req_id" /> (example: CRQ12345678)
+			<br><br>
+			Project VRF: <input type="text" name="project_vrf"/> (example: ABC)
+			<br><br>
+			VLAN ID: <input type="text" name="new_wan_vlan_id"/> (hint: vlan range is 100 - 200)
+			<br><br>
+			Subnet: <input type="text" name="ip_new_wan"/> (example: 10.11.22.0)
+			<br><br>
+			Note: Mask: is always/29 -- 255.255.255.248
+			<br><br>
+			<button type="submit">Submit</button>
+		</form>
+    </ul>
+
+</body>
+</html>
