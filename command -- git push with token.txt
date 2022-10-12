@@ -1,0 +1,3 @@
+# Git
+# this file must not be pushed to Github (sensitive info -- access token)
+git push https://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@github.com/vbg-code/confgen_djano_1st.git

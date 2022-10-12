@@ -1,4 +1,4 @@
 #ignore the /venv folder
 venv/*
 #ignore the file with the git token
-commands.txt
+command -- git push with token

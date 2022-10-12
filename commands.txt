@@ -1,0 +1,15 @@
+# Git
+git add .
+git commit -m "xxx"
+## after pasting the token, move this command to file that is included in .gitignore (sensitive info -- access token)
+git push https://<place here the token info>@github.com/vbg-code/confgen_djano_1st.git
+
+# venv
+cd C:\Users\vg100\Documents\confgen_djano_1st\venv\Scripts
+activate
+cd ../..
+cd C:\Users\vg100\Documents\confgen_djano_1st\venv\Scripts
+deactivate.bat
+
+# Django
+python manage.py runserver
